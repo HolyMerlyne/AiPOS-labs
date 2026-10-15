@@ -3,147 +3,136 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <stdarg.h>
-#include <time.h>
-#include <conio.h>
 #include <winsock2.h>
 #include <windows.h>
 
 #pragma comment(lib, "ws2_32.lib")
+#define MY_PORT 666
 
-#define PORT        666
-#define SERVERADDR  "127.0.0.1"
-#define LOGFILE     "client_log.txt"
-
-FILE* g_log = NULL;
-
-void log_event(const char* fmt, ...)
-{
-    if (!g_log) return;
-    char tbuf[32];
-    time_t t = time(NULL);
-    strftime(tbuf, sizeof(tbuf), "%Y-%m-%d %H:%M:%S", localtime(&t));
-    fprintf(g_log, "[%s] ", tbuf);
-
-    va_list ap;
-    va_start(ap, fmt);
-    vfprintf(g_log, fmt, ap);
-    va_end(ap);
-    fprintf(g_log, "\n");
-    fflush(g_log);
-}
-
-SOCKET connect_to(const char* server, int port)
-{
-    SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
-    if (s == INVALID_SOCKET) return INVALID_SOCKET;
-
-    sockaddr_in a;
-    a.sin_family = AF_INET;
-    a.sin_port = htons((u_short)port);
-    a.sin_addr.s_addr = (inet_addr(server) != INADDR_NONE)
-        ? inet_addr(server)
-        : ((unsigned long**)gethostbyname(server)->h_addr_list)[0][0];
-
-    if (connect(s, (sockaddr*)&a, sizeof(a))) {
-        closesocket(s);
-        return INVALID_SOCKET;
-    }
-    printf("Connected to %s:%d\n", server, port);
-    log_event("CONNECT to %s:%d", server, port);
-    return s;
-}
-
-void disconnect_sock(SOCKET* s)
-{
-    if (*s != INVALID_SOCKET) {
-        log_event("DISCONNECT");
-        closesocket(*s);
-        *s = INVALID_SOCKET;
-        printf("Disconnected.\n");
-    }
-}
+DWORD WINAPI WorkWithClient(LPVOID client_socket);
+int nclients = 0;
 
 int main()
 {
     char buff[1024];
-    printf("TCP CLIENT (variant 8, task 1)\n");
-    printf("Type text. Press HOME to send. 'disconnect <addr> <port>' + HOME to exit.\n\n");
+    printf("TCP SERVER (variant 8: create <filename> <text>)\n");
 
-    g_log = fopen(LOGFILE, "a");
-    if (!g_log) return -1;
-    log_event("=== SESSION START ===");
-
-    if (WSAStartup(0x202, (WSADATA*)buff)) {
-        printf("WSAStartup error %d\n", WSAGetLastError());
-        fclose(g_log); return -1;
+    if (WSAStartup(0x0202, (WSADATA*)buff)) {
+        printf("Error WSAStartup %d\n", WSAGetLastError());
+        return -1;
     }
 
-    SOCKET my_sock = connect_to(SERVERADDR, PORT);
-    if (my_sock == INVALID_SOCKET) {
-        WSACleanup(); fclose(g_log); return -1;
+    SOCKET mysocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (mysocket == INVALID_SOCKET) {
+        printf("Error socket %d\n", WSAGetLastError());
+        WSACleanup(); return -1;
     }
 
-    int nsize = recv(my_sock, buff, sizeof(buff) - 1, 0);
-    if (nsize > 0) { buff[nsize] = 0; printf("S=>C: %s", buff); }
+    sockaddr_in local_addr;
+    local_addr.sin_family = AF_INET;
+    local_addr.sin_port = htons(MY_PORT);
+    local_addr.sin_addr.s_addr = 0;
 
-    char line[1024] = { 0 };
-    int  linelen = 0;
-    printf("C<=S: ");
+    if (bind(mysocket, (sockaddr*)&local_addr, sizeof(local_addr))) {
+        printf("Error bind %d\n", WSAGetLastError());
+        closesocket(mysocket); WSACleanup(); return -1;
+    }
 
-    while (1)
+    if (listen(mysocket, 0x100)) {
+        printf("Error listen %d\n", WSAGetLastError());
+        closesocket(mysocket); WSACleanup(); return -1;
+    }
+    printf("Waiting for connections on port %d...\n", MY_PORT);
+
+    SOCKET client_socket;
+    sockaddr_in client_addr;
+    int client_addr_size = sizeof(client_addr);
+
+    while ((client_socket = accept(mysocket, (sockaddr*)&client_addr, &client_addr_size)))
     {
-        int ch = _getch();
+        nclients++;
+        HOSTENT* hst = gethostbyaddr((char*)&client_addr.sin_addr.s_addr, 4, AF_INET);
+        printf("+%s [%s] new connect!\n%d user on-line\n",
+            hst ? hst->h_name : "", inet_ntoa(client_addr.sin_addr), nclients);
 
-        // HOME = отправка
-        if (ch == 0 || ch == 0xE0) {
-            if (_getch() != 71) continue;       // 71 = Home
+        DWORD thID;
+        CreateThread(NULL, NULL, WorkWithClient, &client_socket, NULL, &thID);
+    }
 
-            if (linelen > 0) {
-                line[linelen] = 0;
-                printf("\n");
-                log_event("SEND: %s", line);
+    closesocket(mysocket);
+    WSACleanup();
+    return 0;
+}
 
-                if (!strncmp(line, "disconnect ", 11)) {
-                    disconnect_sock(&my_sock);
-                    goto done;
+DWORD WINAPI WorkWithClient(LPVOID client_socket)
+{
+    SOCKET my_sock = ((SOCKET*)client_socket)[0];
+    char buff[4096];
+    int bytes_recv;
+
+    send(my_sock, "Hello! Command: create <filename> <text>\r\n", 43, 0);
+    int total = 0;
+    while (total < (int)sizeof(buff) - 1)
+    {
+        bytes_recv = recv(my_sock, buff + total, sizeof(buff) - 1 - total, 0);
+        if (bytes_recv <= 0) {
+            closesocket(my_sock); nclients--;
+            printf("--disconnect\nNo User on line\n");
+            return 0;
+        }
+        total += bytes_recv;
+        buff[total] = 0;
+        if (strstr(buff, "\r\n") || strchr(buff, '\n'))
+            break;
+    }
+
+    for (int i = 0; i < total; i++)
+        if (buff[i] == '\r' || buff[i] == '\n') { buff[i] = 0; break; }
+
+    printf("Client command: '%s'\n", buff);
+
+    const char* err = NULL;
+    if (strncmp(buff, "create ", 7) != 0)
+        err = "ERROR: unknown command. Use: create <filename> <text>\r\nSession terminated.\r\n";
+    else {
+        char* p = buff + 7;
+        while (*p == ' ') p++;
+        char* filename = p;
+        while (*p && *p != ' ') p++;
+
+        if (*p == 0)
+            err = "ERROR: no text provided. Session terminated.\r\n";
+        else {
+            *p++ = 0;
+            while (*p == ' ') p++;
+            char* text = p;
+
+            printf("Creating file '%s' with text '%s'\n", filename, text);
+
+            FILE* f = fopen(filename, "wb");
+            if (!f)
+                err = "ERROR: cannot create file. Session terminated.\r\n";
+            else {
+                size_t written = fwrite(text, 1, strlen(text), f);
+                fclose(f);
+                if (written == 0) {
+                    remove(filename);
+                    err = "ERROR: file size is zero. Session terminated.\r\n";
                 }
-
-                if (send(my_sock, line, linelen, 0) == SOCKET_ERROR) break;
-
-                nsize = recv(my_sock, buff, sizeof(buff) - 1, 0);
-                if (nsize > 0) { buff[nsize] = 0; printf("S=>C: %s", buff); }
-                else if (nsize == 0) { printf("[Server closed]\n"); break; }
+                else {
+                    char answer[128];
+                    sprintf(answer, "File '%s' created. Size = %u bytes.\r\n",
+                        filename, (unsigned)written);
+                    send(my_sock, answer, (int)strlen(answer), 0);
+                    printf("File '%s' created (%u bytes)\n", filename, (unsigned)written);
+                }
             }
-            linelen = 0; line[0] = 0;
-            printf("C<=S: ");
-            continue;
-        }
-
-        // Enter — НЕ отправляет
-        if (ch == '\r' || ch == '\n') {
-            printf("\n(press HOME to send)\nC<=S: %s", line);
-            continue;
-        }
-
-        // Backspace
-        if (ch == 8) {
-            if (linelen > 0) { line[--linelen] = 0; printf("\b \b"); }
-            continue;
-        }
-
-        // обычный символ
-        if (ch >= 32 && ch < 127 && linelen < (int)sizeof(line) - 1) {
-            line[linelen++] = (char)ch;
-            line[linelen] = 0;
-            putchar(ch);
         }
     }
 
-done:
-    if (my_sock != INVALID_SOCKET) disconnect_sock(&my_sock);
-    log_event("=== SESSION END ===");
-    fclose(g_log);
-    WSACleanup();
+    if (err) send(my_sock, err, (int)strlen(err), 0);
+    closesocket(my_sock);
+    nclients--;
+    printf("--disconnect\nNo User on line\n");
     return 0;
 }
