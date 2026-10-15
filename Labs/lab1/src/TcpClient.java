@@ -4,12 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
-/**
- * TCP-клиент, вариант 6.
- * - Отправляет строки серверу.
- * - Ведёт лог-файл: время начала/конца соединения, время приёма строк.
- * - Команда подключения: connect <адрес> <порт>.
- */
+
 public class TcpClient {
 
     private static final DateTimeFormatter FMT =
