@@ -71,21 +71,26 @@ DWORD WINAPI WorkWithClient(LPVOID client_socket)
     int bytes_recv;
 
     send(my_sock, "Hello! Command: create <filename> <text>\r\n", 43, 0);
-
-    bytes_recv = recv(my_sock, buff, sizeof(buff) - 1, 0);
-    if (bytes_recv <= 0) {
-        closesocket(my_sock); nclients--;
-        printf("--disconnect\nNo User on line\n");
-        return 0;
+    int total = 0;
+    while (total < (int)sizeof(buff) - 1)
+    {
+        bytes_recv = recv(my_sock, buff + total, sizeof(buff) - 1 - total, 0);
+        if (bytes_recv <= 0) {
+            closesocket(my_sock); nclients--;
+            printf("--disconnect\nNo User on line\n");
+            return 0;
+        }
+        total += bytes_recv;
+        buff[total] = 0;
+        if (strstr(buff, "\r\n") || strchr(buff, '\n'))
+            break;
     }
-    buff[bytes_recv] = 0;
 
-    for (int i = 0; i < bytes_recv; i++)
+    for (int i = 0; i < total; i++)
         if (buff[i] == '\r' || buff[i] == '\n') { buff[i] = 0; break; }
 
     printf("Client command: '%s'\n", buff);
 
-    // проверка команды create
     const char* err = NULL;
     if (strncmp(buff, "create ", 7) != 0)
         err = "ERROR: unknown command. Use: create <filename> <text>\r\nSession terminated.\r\n";
@@ -126,7 +131,6 @@ DWORD WINAPI WorkWithClient(LPVOID client_socket)
     }
 
     if (err) send(my_sock, err, (int)strlen(err), 0);
-
     closesocket(my_sock);
     nclients--;
     printf("--disconnect\nNo User on line\n");
