@@ -48,15 +48,25 @@ int main()
     sockaddr_in client_addr;
     int client_addr_size = sizeof(client_addr);
 
-    while ((client_socket = accept(mysocket, (sockaddr*)&client_addr, &client_addr_size)))
+    while (1)
     {
+        client_socket = accept(mysocket, (sockaddr*)&client_addr, &client_addr_size);
+
+        if (client_socket == INVALID_SOCKET) {
+            printf("Accept failed: %d\n", WSAGetLastError());
+            break;
+        }
+
         nclients++;
+
         HOSTENT* hst = gethostbyaddr((char*)&client_addr.sin_addr.s_addr, 4, AF_INET);
         printf("+%s [%s] new connect!\n%d user on-line\n",
             hst ? hst->h_name : "", inet_ntoa(client_addr.sin_addr), nclients);
 
+        SOCKET* p_sock = new SOCKET(client_socket);
+
         DWORD thID;
-        CreateThread(NULL, NULL, WorkWithClient, &client_socket, NULL, &thID);
+        CreateThread(NULL, NULL, WorkWithClient, p_sock, NULL, &thID);
     }
 
     closesocket(mysocket);
@@ -66,24 +76,38 @@ int main()
 
 DWORD WINAPI WorkWithClient(LPVOID client_socket)
 {
-    SOCKET my_sock = ((SOCKET*)client_socket)[0];
+    SOCKET* p_sock = (SOCKET*)client_socket;
+    SOCKET my_sock = *p_sock;
+    delete p_sock;
+
     char buff[4096];
     int bytes_recv;
 
     send(my_sock, "Hello! Command: create <filename> <text>\r\n", 43, 0);
+
     int total = 0;
-    while (total < (int)sizeof(buff) - 1)
+    while (1)
     {
+        if (total >= (int)sizeof(buff) - 1) {
+            printf("Buffer overflow! Terminating.\n");
+            break;
+        }
+
         bytes_recv = recv(my_sock, buff + total, sizeof(buff) - 1 - total, 0);
+
         if (bytes_recv <= 0) {
-            closesocket(my_sock); nclients--;
+            closesocket(my_sock);
+            nclients--; 
             printf("--disconnect\nNo User on line\n");
             return 0;
         }
+
         total += bytes_recv;
         buff[total] = 0;
-        if (strstr(buff, "\r\n") || strchr(buff, '\n'))
+
+        if (strstr(buff, "\r\n") || strchr(buff, '\n')) {
             break;
+        }
     }
 
     for (int i = 0; i < total; i++)
@@ -115,6 +139,7 @@ DWORD WINAPI WorkWithClient(LPVOID client_socket)
             else {
                 size_t written = fwrite(text, 1, strlen(text), f);
                 fclose(f);
+
                 if (written == 0) {
                     remove(filename);
                     err = "ERROR: file size is zero. Session terminated.\r\n";
@@ -131,8 +156,11 @@ DWORD WINAPI WorkWithClient(LPVOID client_socket)
     }
 
     if (err) send(my_sock, err, (int)strlen(err), 0);
+
     closesocket(my_sock);
+
     nclients--;
     printf("--disconnect\nNo User on line\n");
+
     return 0;
 }
