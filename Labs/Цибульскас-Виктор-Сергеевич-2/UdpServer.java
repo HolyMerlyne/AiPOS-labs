@@ -15,6 +15,8 @@ public class UdpServer {
     public static final int DEFAULT_PORT = 666;
     public static final int BUFFER_SIZE = 2048;
     public static final int CHUNK_SIZE = ChecksumUtil.CHUNK_SIZE;
+    private static final String ASCII_ERROR =
+            "ERROR: допускаются только ASCII-символы (коды 0..127). Датаграмма не обработана.";
     private static final DateTimeFormatter CLOCK = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     private final DatagramSocket socket;
@@ -51,6 +53,14 @@ public class UdpServer {
 
                 log(String.format("Принята датаграмма от [%s]: \"%s\" (длина: %d байт)",
                         clientAddress, receivedText, packet.getLength()));
+
+                // По условию задания поток должен состоять только из ASCII-символов.
+                // Не-ASCII датаграмма не попадает в буфер и не участвует в подсчете.
+                if (!ChecksumUtil.isAscii(receivedText)) {
+                    log(String.format("Отклонена датаграмма от [%s]: обнаружены не-ASCII символы", clientAddress));
+                    sendDatagram(ASCII_ERROR, clientIp, clientPort);
+                    continue;
+                }
 
                 String trimmed = receivedText.trim();
 

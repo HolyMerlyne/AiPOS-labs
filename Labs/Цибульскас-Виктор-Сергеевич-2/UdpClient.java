@@ -36,6 +36,8 @@ public class UdpClient extends JFrame {
     private static final String DEFAULT_HOST = "127.0.0.1";
     private static final int DEFAULT_PORT = 666;
     public static final String LOG_FILE = "client_protocol.log";
+    private static final String ASCII_ONLY_ERROR =
+            "Ошибка: разрешены только ASCII-символы (коды 0..127). Строка не отправлена.";
 
     private static final Logger JOURNAL = Logger.getLogger("aipos.udp.client");
     private static final DateTimeFormatter CLOCK = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
@@ -112,6 +114,7 @@ public class UdpClient extends JFrame {
         say("   Также строку можно отправить клавишей Enter или кнопкой «Отправить (End)»");
         say("3) Разрыв соединения: disconnect <адрес> <порт>");
         say("4) Протокол событий пишется в UTF-8 файл: " + new File(LOG_FILE).getAbsolutePath());
+        say("5) Строки данных должны состоять только из ASCII-символов (коды 0..127)");
         say("===============================================================\n");
 
         setVisible(true);
@@ -156,7 +159,6 @@ public class UdpClient extends JFrame {
      */
     private void submit() {
         String text = field.getText();
-        field.setText("");
 
         if (text.isEmpty()) {
             say("Поле ввода пустое: введите строку для отправки.");
@@ -166,14 +168,22 @@ public class UdpClient extends JFrame {
         // Служебные команды распознаются без учета ведущих/замыкающих пробелов.
         String command = text.trim();
         if (isCommand(command, "connect")) {
+            field.setText("");
             connectTo(command);
             return;
         }
         if (isCommand(command, "disconnect")) {
+            field.setText("");
             disconnectFrom(command);
             return;
         }
 
+        if (!ChecksumUtil.isAscii(text)) {
+            say(ASCII_ONLY_ERROR);
+            return;
+        }
+
+        field.setText("");
         sendText(text);
     }
 
@@ -181,6 +191,10 @@ public class UdpClient extends JFrame {
      * Отправка строки данных без искажения пробелов и символов.
      */
     private synchronized void sendText(String text) {
+        if (!ChecksumUtil.isAscii(text)) {
+            say(ASCII_ONLY_ERROR);
+            return;
+        }
         if (!sessionOpen || socket == null || serverAddress == null) {
             say("Ошибка: Сначала выполните подключение: connect <адрес> <порт>");
             return;
@@ -384,6 +398,10 @@ public class UdpClient extends JFrame {
         if (parts.length >= 2) {
             port = parsePort(parts[1]);
         }
+        if (!ChecksumUtil.isAscii(host)) {
+            throw new IllegalArgumentException(
+                    "адрес должен состоять только из ASCII-символов: " + host);
+        }
         return new Target(host, port);
     }
 
@@ -510,6 +528,11 @@ public class UdpClient extends JFrame {
                         System.out.println("[КЛИЕНТ] Ошибка отправки disconnect: " + error.getMessage());
                     }
                     break;
+                }
+
+                if (!ChecksumUtil.isAscii(raw)) {
+                    System.out.println("[КЛИЕНТ] " + ASCII_ONLY_ERROR);
+                    continue;
                 }
 
                 try {
