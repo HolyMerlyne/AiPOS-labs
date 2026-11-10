@@ -1,4 +1,4 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 #include <stdio.h>
@@ -16,6 +16,7 @@
 #define LOGFILE     "client_log.txt"
 
 FILE* g_log = NULL;
+sockaddr_in g_server;
 
 void log_event(const char* fmt, ...)
 {
@@ -33,41 +34,28 @@ void log_event(const char* fmt, ...)
     fflush(g_log);
 }
 
-SOCKET connect_to(const char* server, int port)
+void set_server(const char* server, int port)
 {
-    SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
-    if (s == INVALID_SOCKET) return INVALID_SOCKET;
+    memset(&g_server, 0, sizeof(g_server));
+    g_server.sin_family = AF_INET;
+    g_server.sin_port = htons((u_short)port);
 
-    sockaddr_in a;
-    a.sin_family = AF_INET;
-    a.sin_port = htons((u_short)port);
-    a.sin_addr.s_addr = (inet_addr(server) != INADDR_NONE)
-        ? inet_addr(server)
-        : ((unsigned long**)gethostbyname(server)->h_addr_list)[0][0];
-
-    if (connect(s, (sockaddr*)&a, sizeof(a))) {
-        closesocket(s);
-        return INVALID_SOCKET;
+    if (inet_addr(server) != INADDR_NONE)
+        g_server.sin_addr.s_addr = inet_addr(server);
+    else {
+        HOSTENT* hst = gethostbyname(server);
+        if (hst)
+            g_server.sin_addr.s_addr = ((unsigned long**)hst->h_addr_list)[0][0];
     }
-    printf("Connected to %s:%d\n", server, port);
+
+    printf("Server set to %s:%d\n", server, port);
     log_event("CONNECT to %s:%d", server, port);
-    return s;
-}
-
-void disconnect_sock(SOCKET* s)
-{
-    if (*s != INVALID_SOCKET) {
-        log_event("DISCONNECT");
-        closesocket(*s);
-        *s = INVALID_SOCKET;
-        printf("Disconnected.\n");
-    }
 }
 
 int main()
 {
-    char buff[1024];
-    printf("TCP CLIENT (variant 8, task 1)\n");
+    char buff[4096];
+    printf("UDP CLIENT (variant 8, task 1)\n");
     printf("Type text. Press HOME to send. 'disconnect <addr> <port>' + HOME to exit.\n\n");
 
     g_log = fopen(LOGFILE, "a");
@@ -79,13 +67,13 @@ int main()
         fclose(g_log); return -1;
     }
 
-    SOCKET my_sock = connect_to(SERVERADDR, PORT);
+    SOCKET my_sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (my_sock == INVALID_SOCKET) {
+        printf("Socket() error %d\n", WSAGetLastError());
         WSACleanup(); fclose(g_log); return -1;
     }
 
-    int nsize = recv(my_sock, buff, sizeof(buff) - 1, 0);
-    if (nsize > 0) { buff[nsize] = 0; printf("S=>C: %s", buff); }
+    set_server(SERVERADDR, PORT);
 
     char line[1024] = { 0 };
     int  linelen = 0;
@@ -104,21 +92,32 @@ int main()
                 log_event("SEND: %s", line);
 
                 if (!strncmp(line, "disconnect ", 11)) {
-                    disconnect_sock(&my_sock);
+                    log_event("DISCONNECT");
                     goto done;
                 }
 
-                line[linelen] = '\r';
-                line[linelen + 1] = '\n';
-                line[linelen + 2] = 0;
+                if (sendto(my_sock, line, linelen, 0,
+                    (sockaddr*)&g_server, sizeof(g_server)) == SOCKET_ERROR)
+                {
+                    printf("sendto error %d\n", WSAGetLastError());
+                    break;
+                }
 
-                if (send(my_sock, line, linelen + 2, 0) == SOCKET_ERROR) break;
+                sockaddr_in from;
+                int from_len = sizeof(from);
+                int n = recvfrom(my_sock, buff, sizeof(buff) - 1, 0,
+                    (sockaddr*)&from, &from_len);
 
-                nsize = recv(my_sock, buff, sizeof(buff) - 1, 0);
-                if (nsize > 0) { buff[nsize] = 0; printf("S=>C: %s", buff); }
-                else if (nsize == 0) { printf("[Server closed]\n"); break; }
+                if (n == SOCKET_ERROR) {
+                    printf("[recvfrom error: %d]\n", WSAGetLastError());
+                }
+                else if (n > 0) {
+                    buff[n] = 0;
+                    printf("S=>C: %s", buff);
+                }
             }
-            linelen = 0; line[0] = 0;
+            linelen = 0;
+            line[0] = 0;
             printf("C<=S: ");
             continue;
         }
@@ -141,9 +140,9 @@ int main()
     }
 
 done:
-    if (my_sock != INVALID_SOCKET) disconnect_sock(&my_sock);
     log_event("=== SESSION END ===");
     fclose(g_log);
+    closesocket(my_sock);
     WSACleanup();
     return 0;
 }
