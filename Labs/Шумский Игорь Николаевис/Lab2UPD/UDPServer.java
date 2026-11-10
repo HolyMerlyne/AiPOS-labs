@@ -5,9 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UDPServer {
     public static final int PORT = 666;
     
-    // Хранилище буферов для каждого клиента
     private static Map<SocketAddress, StringBuilder> clientBuffers = new ConcurrentHashMap<>();
-    // "Черный список" адресов клиентов, которым сервер отказал в обслуживании
     private static Set<SocketAddress> disconnectedClients = ConcurrentHashMap.newKeySet();
 
     public static void main(String[] args) {
@@ -23,12 +21,10 @@ public class UDPServer {
                 String data = new String(packet.getData(), 0, packet.getLength());
                 SocketAddress clientAddr = packet.getSocketAddress();
 
-                // 1. ПРОВЕРКА: Если клиент уже был отключен сервером, игнорируем его пакеты
                 if (disconnectedClients.contains(clientAddr)) {
                     continue; 
                 }
 
-                // Обработка команды логического разрыва соединения от самого клиента
                 if (data.trim().equalsIgnoreCase("disconnect")) {
                     clientBuffers.remove(clientAddr);
                     disconnectedClients.add(clientAddr);
@@ -36,11 +32,9 @@ public class UDPServer {
                     continue;
                 }
 
-                // Получаем или создаем буфер для клиента
                 StringBuilder sb = clientBuffers.computeIfAbsent(clientAddr, k -> new StringBuilder());
                 sb.append(data);
 
-                // Обрабатываем группами по 64 символа
                 while (sb.length() >= 64) {
                     String group = sb.substring(0, 64);
                     sb.delete(0, 64);
@@ -55,7 +49,6 @@ public class UDPServer {
                         response = "Error: less than 3 different characters in the group. Disconnecting.";
                         System.out.println("Error for client " + clientAddr + ". Disconnecting.");
                         
-                        // 2. ЛОГИЧЕСКИЙ РАЗРЫВ: удаляем буфер и добавляем адрес в черный список
                         clientBuffers.remove(clientAddr);
                         disconnectedClients.add(clientAddr);
                     } else {

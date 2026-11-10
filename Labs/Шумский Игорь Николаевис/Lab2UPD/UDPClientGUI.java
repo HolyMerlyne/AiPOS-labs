@@ -15,7 +15,6 @@ public class UDPClientGUI extends JFrame {
     private InetAddress address;
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     
-    // Флаг, указывающий на то, что сервер разорвал соединение
     private volatile boolean isDisconnected = false;
 
     private JTextArea outputArea;
@@ -61,7 +60,6 @@ public class UDPClientGUI extends JFrame {
         add(outputScroll, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
 
-        // Привязка клавиши Home
         InputMap inputMap = inputArea.getInputMap(JComponent.WHEN_FOCUSED);
         ActionMap actionMap = inputArea.getActionMap();
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0), "sendAction");
@@ -107,15 +105,14 @@ public class UDPClientGUI extends JFrame {
                         outputArea.append("Server: " + response + "\n");
                         outputArea.setCaretPosition(outputArea.getDocument().getLength());
                         
-                        // 3. ОБРАБОТКА РАЗРЫВА НА СТОРОНЕ КЛИЕНТА
                         if (response.toLowerCase().contains("disconnecting")) {
-                            isDisconnected = true; // Блокируем дальнейшую отправку
+                            isDisconnected = true;
                             statusLabel.setText("Статус: Сервер разорвал соединение");
                             statusLabel.setForeground(Color.RED);
-                            inputArea.setEditable(false); // Блокируем поле ввода визуально
+                            inputArea.setEditable(false);
                             
                             if (socket != null && !socket.isClosed()) {
-                                socket.close(); // Физически закрываем сокет
+                                socket.close();
                             }
                             
                             JOptionPane.showMessageDialog(UDPClientGUI.this, 
@@ -135,7 +132,6 @@ public class UDPClientGUI extends JFrame {
     }
 
     private void sendData() {
-        // 4. ЗАЩИТА: Если соединение разорвано, игнорируем попытки отправки
         if (isDisconnected) {
             return; 
         }
