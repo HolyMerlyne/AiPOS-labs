@@ -1,0 +1,32 @@
+????. 10, 2026 1:35:04 AM TcpServer main
+INFO: TCP server started on port 666
+????. 10, 2026 1:35:22 AM TcpServer main
+INFO: Client connected: /127.0.0.1:59105
+????. 10, 2026 1:36:12 AM TcpServer$ClientHandler run
+INFO: From client: find Hello test1.txt
+????. 10, 2026 1:36:12 AM TcpServer$ClientHandler run
+INFO: Found 2 lines with 'Hello'
+????. 10, 2026 1:37:20 AM TcpServer$ClientHandler run
+INFO: From client: find line test1.txt
+????. 10, 2026 1:37:20 AM TcpServer$ClientHandler run
+INFO: Found 2 lines with 'line'
+????. 10, 2026 1:37:27 AM TcpServer$ClientHandler run
+INFO: From client: find apple test2.txt
+????. 10, 2026 1:37:27 AM TcpServer$ClientHandler run
+INFO: Found 2 lines with 'apple'
+????. 10, 2026 1:37:38 AM TcpServer$ClientHandler run
+INFO: From client: find Hello test2.txt
+????. 10, 2026 1:37:38 AM TcpServer$ClientHandler run
+INFO: No matches for 'Hello' in test2.txt
+????. 10, 2026 1:37:38 AM TcpServer$ClientHandler run
+INFO: Client disconnected
+????. 10, 2026 1:54:11 AM TcpServer main
+INFO: TCP server started on port 666
+????. 10, 2026 1:54:19 AM TcpServer main
+INFO: Client connected: /127.0.0.1:57564
+????. 10, 2026 1:54:29 AM TcpServer$ClientHandler run
+INFO: From client: find Hello test1.txt
+????. 10, 2026 1:54:29 AM TcpServer$ClientHandler run
+INFO: Found 2 lines with 'Hello'
+????. 10, 2026 1:54:44 AM TcpServer$ClientHandler run
+INFO: Client disconnected
