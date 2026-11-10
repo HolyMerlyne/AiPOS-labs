@@ -10,14 +10,10 @@ public class TCPServer {
         
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             while (true) {
-                // Ожидаем подключения клиента (блокирующий вызов)
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("Client connected: " + clientSocket.getInetAddress());
-                
-                // Запускаем отдельный поток для обслуживания этого клиента
+                System.out.println("Client connected: " + clientSocket.getInetAddress());   
                 new Thread(new ClientHandler(clientSocket)).start();
             }
-            // Примечание: в реальном приложении здесь был бы graceful shutdown
         } catch (IOException e) {
             System.err.println("Server error: " + e.getMessage());
         }
@@ -32,9 +28,7 @@ class ClientHandler implements Runnable {
     public ClientHandler(Socket socket) {
         this.socket = socket;
         try {
-            // Инициализация потоков ввода-вывода
             this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            // true включает автоматический сброс буфера (flush) после каждого println
             this.out = new PrintWriter(socket.getOutputStream(), true); 
         } catch (IOException e) {
             System.err.println("Error initializing streams: " + e.getMessage());
@@ -47,10 +41,8 @@ class ClientHandler implements Runnable {
         
         try {
             String line;
-            // Читаем данные от клиента построчно
             while ((line = in.readLine()) != null) {
                 
-                // Если клиент прислал команду на отключение
                 if (line.trim().equalsIgnoreCase("disconnect")) {
                     System.out.println("Client requested disconnect.");
                     break;
@@ -58,26 +50,22 @@ class ClientHandler implements Runnable {
 
                 buffer.append(line);
                 
-                // Обрабатываем данные группами ровно по 64 символа
                 while (buffer.length() >= 64) {
                     String group = buffer.substring(0, 64);
-                    buffer.delete(0, 64); // Удаляем обработанные символы из буфера
+                    buffer.delete(0, 64);
                     
-                    // Подсчет частоты символов
                     Map<Character, Integer> charCount = new LinkedHashMap<>();
                     for (char c : group.toCharArray()) {
                         charCount.put(c, charCount.getOrDefault(c, 0) + 1);
                     }
                     
-                    // Проверка условия варианта 12, задание 4
                     if (charCount.size() < 3) {
                         String errorMsg = "Error: less than 3 different characters in the group. Disconnecting.";
                         System.out.println("Error for client. Disconnecting.");
                         out.println(errorMsg);
-                        return; // Завершаем метод run(), что автоматически закроет сокет в блоке finally
+                        return;
                     }
                     
-                    // Формирование ответа: "символ-количество символ-количество..."
                     StringBuilder response = new StringBuilder();
                     for (Map.Entry<Character, Integer> entry : charCount.entrySet()) {
                         response.append(entry.getKey()).append("-").append(entry.getValue()).append(" ");
@@ -89,7 +77,6 @@ class ClientHandler implements Runnable {
         } catch (IOException e) {
             System.out.println("Client disconnected abruptly or IO error: " + e.getMessage());
         } finally {
-            // Гарантированное закрытие ресурсов при завершении потока
             try {
                 if (socket != null && !socket.isClosed()) {
                     socket.close();

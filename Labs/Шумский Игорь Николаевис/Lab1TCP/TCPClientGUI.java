@@ -61,7 +61,6 @@ public class TCPClientGUI extends JFrame {
         add(outputScroll, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
 
-        // Привязка клавиши Home для отправки
         InputMap inputMap = inputArea.getInputMap(JComponent.WHEN_FOCUSED);
         ActionMap actionMap = inputArea.getActionMap();
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0), "sendAction");
@@ -72,7 +71,6 @@ public class TCPClientGUI extends JFrame {
             }
         });
 
-        // 2) Автоматическое подключение при запуске
         connectToServer();
     }
 
@@ -100,9 +98,7 @@ public class TCPClientGUI extends JFrame {
     Thread receiverThread = new Thread(() -> {
         try {
             String line;
-            // Читаем ответы от сервера, пока сокет открыт и не разорван
             while (!isDisconnected && (line = in.readLine()) != null) {
-                // Создаем effectively final копию для использования в лямбде
                 final String response = line;
                 
                 logEvent("Received from server: \"" + response + "\"");
@@ -117,7 +113,6 @@ public class TCPClientGUI extends JFrame {
                 });
             }
         } catch (SocketException e) {
-            // Нормальная ситуация при закрытии сокета
         } catch (IOException e) {
             if (!isDisconnected) {
                 logEvent("IO Error: " + e.getMessage());
@@ -160,11 +155,11 @@ public class TCPClientGUI extends JFrame {
         }
 
         try {
-            out.println(text); // Отправляем строку на сервер
+            out.println(text);
             logEvent("Sent to server: \"" + text + "\"");
             outputArea.append("Me (Home): " + text + "\n");
             outputArea.setCaretPosition(outputArea.getDocument().getLength());
-            inputArea.setText(""); // Очищаем поле ввода
+            inputArea.setText("");
         } catch (Exception e) {
             logEvent("Send error: " + e.getMessage());
             JOptionPane.showMessageDialog(this, "Ошибка отправки: " + e.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
@@ -172,8 +167,6 @@ public class TCPClientGUI extends JFrame {
     }
 
     private void disconnect() {
-    // Убираем проверку isDisconnected - окно должно закрываться всегда!
-    // if (isDisconnected) return;  <-- УДАЛИТЬ ЭТУ СТРОКУ
     
     isDisconnected = true;
     
@@ -186,10 +179,8 @@ public class TCPClientGUI extends JFrame {
         if (in != null) in.close();
         if (socket != null && !socket.isClosed()) socket.close();
     } catch (IOException e) {
-        // Игнорируем ошибки закрытия уже закрытых ресурсов
     }
     
-    // Закрываем окно приложения
     dispose();
     System.exit(0);
 }
