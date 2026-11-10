@@ -1,0 +1,8 @@
+????. 10, 2026 2:00:14 AM UdpClient connect
+INFO: CONNECTED (UDP) to 127.0.0.1:666
+????. 10, 2026 2:00:25 AM UdpClient run
+INFO: SENT => find apple test2.txt
+????. 10, 2026 2:00:25 AM UdpClient run
+INFO: RECV <= RESULT: ??????? ????? = 2
+????. 10, 2026 2:00:34 AM UdpClient close
+INFO: DISCONNECT (UDP)
