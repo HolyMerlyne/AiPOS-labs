@@ -1,0 +1,6 @@
+# Локальные материалы, не входящие в отчёт
+captures/
+analysis/
+scripts/
+diagrams/
+.DS_Store
