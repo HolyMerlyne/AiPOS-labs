@@ -25,7 +25,7 @@
 | PC5 | 11.1.1.6 | 255.255.255.0 |
 | PC6 | 11.1.1.7 | 255.255.255.0 |
 
-**[МЕСТО ДЛЯ СКРИНШОТА 1 — ТОПОЛОГИЯ ЛОКАЛЬНОЙ СЕТИ]**
+<img width="594" height="425" alt="Снимок экрана — 2026-11-11 в 17 19 49" src="https://github.com/user-attachments/assets/7b6629c4-0340-4fc6-b53c-1599bde0f4bd" />
 
 *Рисунок 1. Топология локальной сети.*
 
@@ -49,7 +49,7 @@ FastEthernet0 Connection:(default port)
                                      0.0.0.0
 ```
 
-**[МЕСТО ДЛЯ СКРИНШОТА 2 — IP CONFIG НА PC0]**
+<img width="285" height="168" alt="Снимок экрана — 2026-11-11 в 16 17 37" src="https://github.com/user-attachments/assets/1df8a16c-4e93-4ed7-bb2e-8e4a46697bf2" />
 
 *Рисунок 2. Проверка сетевых параметров рабочей станции PC0.*
 
@@ -64,6 +64,17 @@ C:\>ping 11.1.1.2
 ```
 
 **[МЕСТО ДЛЯ СКРИНШОТА 3 — PING PC0 → PC1]**
+<img width="285" height="168" alt="Снимок экрана — 2026-11-11 в 16 17 37" src="https://github.com/user-attachments/assets/689867cb-b27e-4c78-90ac-a16f9f9a76ca" />
+
+
+Проверка связи между PC0 и PC3:
+
+```text
+C:\>ping 11.1.1.4
+```
+
+<img width="280" height="182" alt="Снимок экрана — 2026-11-11 в 16 21 31" src="https://github.com/user-attachments/assets/ea42c8c9-1912-4a37-b9f2-89049d2dcd46" />
+
 
 Проверка связи между PC0 и PC4:
 
@@ -71,15 +82,8 @@ C:\>ping 11.1.1.2
 C:\>ping 11.1.1.5
 ```
 
-**[МЕСТО ДЛЯ СКРИНШОТА 4 — PING PC0 → PC4]**
+<img width="297" height="186" alt="Снимок экрана — 2026-11-11 в 16 22 05" src="https://github.com/user-attachments/assets/975e13ce-4254-495a-863f-9c588b015d6b" />
 
-Проверка связи между PC0 и PC6:
-
-```text
-C:\>ping 11.1.1.7
-```
-
-**[МЕСТО ДЛЯ СКРИНШОТА 5 — PING PC0 → PC6]**
 
 ### 4. Разъяснение
 
@@ -98,7 +102,9 @@ C:\>ping 11.1.1.7
 - R1 и R2 соединены через интерфейсы FastEthernet с помощью кабеля *Copper Cross-Over*.
 - R2 и R3 соединены через интерфейсы Serial с помощью кабеля *Serial DCE/DTE*. Синхронизация DCE настроена на R2.
 
-**[МЕСТО ДЛЯ СКРИНШОТА 6 — ТОПОЛОГИЯ С МАРШРУТИЗАТОРАМИ]**
+<img width="415" height="100" alt="Снимок экрана — 2026-11-11 в 17 04 29" src="https://github.com/user-attachments/assets/5982d438-aca9-42e7-b29e-ebfa0ac3bb72" />
+<img width="629" height="382" alt="Снимок экрана — 2026-11-11 в 17 03 36" src="https://github.com/user-attachments/assets/f1f77328-a0a9-46ce-aa17-70bfd080727c" />
+
 
 *Рисунок 6. Топология сети с маршрутизаторами.*
 
@@ -187,16 +193,18 @@ show ip interface brief
 ```
 
 **R1:**
+<img width="415" height="100" alt="Снимок экрана — 2026-11-11 в 17 04 29" src="https://github.com/user-attachments/assets/687ec8be-8121-45ed-a92c-8ca185f520c0" />
 
-**[МЕСТО ДЛЯ СКРИНШОТА 7 — SHOW IP INTERFACE BRIEF НА R1]**
 
 **R2:**
 
-**[МЕСТО ДЛЯ СКРИНШОТА 8 — SHOW IP INTERFACE BRIEF НА R2]**
+<img width="394" height="82" alt="Снимок экрана — 2026-11-11 в 17 04 59" src="https://github.com/user-attachments/assets/91f5b5bc-114b-4deb-b040-436dd8eb04c6" />
+
 
 **R3:**
 
-**[МЕСТО ДЛЯ СКРИНШОТА 9 — SHOW IP INTERFACE BRIEF НА R3]**
+<img width="405" height="92" alt="Снимок экрана — 2026-11-11 в 17 05 16" src="https://github.com/user-attachments/assets/cc2c3a03-a717-44c5-a826-d40bfbf99f53" />
+
 
 Состояние `up/up` означает, что интерфейс физически активен и протокол канального уровня работает. Интерфейсы, не используемые в данной топологии, могут находиться в состоянии `administratively down`.
 
