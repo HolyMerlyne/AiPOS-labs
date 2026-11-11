@@ -63,7 +63,6 @@ FastEthernet0 Connection:(default port)
 C:\>ping 11.1.1.2
 ```
 
-**[МЕСТО ДЛЯ СКРИНШОТА 3 — PING PC0 → PC1]**
 <img width="285" height="168" alt="Снимок экрана — 2026-11-11 в 16 17 37" src="https://github.com/user-attachments/assets/689867cb-b27e-4c78-90ac-a16f9f9a76ca" />
 
 
@@ -103,7 +102,6 @@ C:\>ping 11.1.1.5
 - R2 и R3 соединены через интерфейсы Serial с помощью кабеля *Serial DCE/DTE*. Синхронизация DCE настроена на R2.
 
 <img width="415" height="100" alt="Снимок экрана — 2026-11-11 в 17 04 29" src="https://github.com/user-attachments/assets/5982d438-aca9-42e7-b29e-ebfa0ac3bb72" />
-<img width="629" height="382" alt="Снимок экрана — 2026-11-11 в 17 03 36" src="https://github.com/user-attachments/assets/f1f77328-a0a9-46ce-aa17-70bfd080727c" />
 
 
 *Рисунок 6. Топология сети с маршрутизаторами.*
@@ -214,7 +212,7 @@ show ip interface brief
 show ip route
 ```
 
-**[МЕСТО ДЛЯ СКРИНШОТА 10 — ТАБЛИЦА МАРШРУТИЗАЦИИ R1]**
+<img width="405" height="92" alt="Снимок экрана — 2026-11-11 в 17 05 16" src="https://github.com/user-attachments/assets/c7cf8b13-5544-4ce7-921b-59d22ed7e0a8" />
 
 *Рисунок 10. Таблица маршрутизации маршрутизатора R1.*
 
@@ -224,7 +222,8 @@ show ip route
 ping 172.16.0.6
 ```
 
-**[МЕСТО ДЛЯ СКРИНШОТА 11 — PING R1 → R3]**
+<img width="390" height="158" alt="Снимок экрана — 2026-11-11 в 17 05 42" src="https://github.com/user-attachments/assets/b25ff8d1-3c42-410b-8fc8-fbe1ebf6ad90" />
+
 
 Дополнительно проверена обратная связь с R3 до R1:
 
@@ -232,7 +231,8 @@ ping 172.16.0.6
 ping 172.16.0.1
 ```
 
-**[МЕСТО ДЛЯ СКРИНШОТА 12 — PING R3 → R1]**
+<img width="396" height="149" alt="Снимок экрана — 2026-11-11 в 17 05 57" src="https://github.com/user-attachments/assets/4f39c8bf-14af-45c1-87c6-83f66955d367" />
+
 
 ### 5. Разъяснение результатов
 
@@ -243,6 +243,3 @@ ping 172.16.0.1
 - **ip route** — используется для добавления статического маршрута, указывающего путь к удалённой сети через следующий маршрутизатор.
 
 Таким образом, была выполнена настройка интерфейсов маршрутизаторов, добавлены статические маршруты и проведена проверка сетевой связности.
-
----
-
