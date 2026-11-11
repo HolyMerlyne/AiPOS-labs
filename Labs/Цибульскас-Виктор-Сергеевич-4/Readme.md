@@ -231,7 +231,6 @@ ping 172.16.0.6
 ping 172.16.0.1
 ```
 
-![Uploading Снимок экрана — 2026-11-11 в 17.06.35.png…]()
 <img width="380" height="89" alt="Снимок экрана — 2026-11-11 в 17 06 55" src="https://github.com/user-attachments/assets/d539a8ae-6e48-425f-bf6e-dae2d6ca08fe" />
 
 
