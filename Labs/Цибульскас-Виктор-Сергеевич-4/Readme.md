@@ -101,8 +101,7 @@ C:\>ping 11.1.1.5
 - R1 и R2 соединены через интерфейсы FastEthernet с помощью кабеля *Copper Cross-Over*.
 - R2 и R3 соединены через интерфейсы Serial с помощью кабеля *Serial DCE/DTE*. Синхронизация DCE настроена на R2.
 
-<img width="415" height="100" alt="Снимок экрана — 2026-11-11 в 17 04 29" src="https://github.com/user-attachments/assets/5982d438-aca9-42e7-b29e-ebfa0ac3bb72" />
-
+<img width="629" height="382" alt="Снимок экрана — 2026-11-11 в 17 03 36" src="https://github.com/user-attachments/assets/26fec1b3-20bd-4eee-9b86-11f4f9accee5" />
 
 *Рисунок 6. Топология сети с маршрутизаторами.*
 
@@ -191,6 +190,7 @@ show ip interface brief
 ```
 
 **R1:**
+
 <img width="415" height="100" alt="Снимок экрана — 2026-11-11 в 17 04 29" src="https://github.com/user-attachments/assets/687ec8be-8121-45ed-a92c-8ca185f520c0" />
 
 
