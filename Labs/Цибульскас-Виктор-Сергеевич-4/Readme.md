@@ -222,7 +222,7 @@ show ip route
 ping 172.16.0.6
 ```
 
-<img width="390" height="158" alt="Снимок экрана — 2026-11-11 в 17 05 42" src="https://github.com/user-attachments/assets/b25ff8d1-3c42-410b-8fc8-fbe1ebf6ad90" />
+<img width="345" height="87" alt="Снимок экрана — 2026-11-11 в 17 06 35" src="https://github.com/user-attachments/assets/4442edf3-6e34-4fe5-b11c-335d0c06a1ba" />
 
 
 Дополнительно проверена обратная связь с R3 до R1:
@@ -231,7 +231,8 @@ ping 172.16.0.6
 ping 172.16.0.1
 ```
 
-<img width="396" height="149" alt="Снимок экрана — 2026-11-11 в 17 05 57" src="https://github.com/user-attachments/assets/4f39c8bf-14af-45c1-87c6-83f66955d367" />
+![Uploading Снимок экрана — 2026-11-11 в 17.06.35.png…]()
+<img width="380" height="89" alt="Снимок экрана — 2026-11-11 в 17 06 55" src="https://github.com/user-attachments/assets/d539a8ae-6e48-425f-bf6e-dae2d6ca08fe" />
 
 
 ### 5. Разъяснение результатов
